@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "Agentic AI FastAPI",
+    "description": "Collection for testing the Agentic AI FastAPI endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Execute Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "execute"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"request\": \"Diagnose why Windows Server 2019 VM cpu01 hits 95%+ CPU, generate a PowerShell script to collect perfmon logs, and draft an email to management summarising findings.\",\n    \"require_approval\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "Execute Task with Approval",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/execute",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "execute"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"request\": \"Create Azure CLI commands to lock RDP (3389) on my three production VMs to 10.0.0.0/24 and pause for approval before outputting the commands.\",\n    \"require_approval\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Approve Plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/plans/{{plan_id}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "plans", "{{plan_id}}", "approve"]
+        }
+      }
+    },
+    {
+      "name": "Reject Plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/plans/{{plan_id}}/reject",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "plans", "{{plan_id}}", "reject"]
+        }
+      }
+    },
+    {
+      "name": "Get Task Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tasks/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "tasks", "{{task_id}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "task_id",
+      "value": "your-task-id-here"
+    },
+    {
+      "key": "plan_id",
+      "value": "your-plan-id-here"
+    }
+  ]
+} 

@@ -1,0 +1,124 @@
+# API Examples
+
+## Direct Execution (Example A)
+
+### Request
+```bash
+curl -X POST "http://localhost:8000/api/v1/execute" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "request": "Diagnose why Windows Server 2019 VM cpu01 hits 95%+ CPU, generate a PowerShell script to collect perfmon logs, and draft an email to management summarising findings.",
+           "require_approval": false
+         }'
+```
+
+### Response
+```json
+{
+    "task_id": "9376cdda-1781-47d1-aa6b-0307286a1b6b",
+    "status": "completed",
+    "plan": null,
+    "diagnosis": {
+        "root_cause": "High CPU usage on Windows Server 2019 VM cpu01",
+        "evidence": [
+            "CPU hitting 95+%",
+            "Possibly causing performance issues"
+        ],
+        "solutions": [
+            "@{title=Investigate running processes to identify resource-intensive applications; confidence=High}"
+        ]
+    },
+    "script": {
+        "language": "powershell",
+        "code": "Invoke-Command -ComputerName cpu01 -ScriptBlock {Get-Counter -Counter '\\Processor(_Total)\\% Processor Time' -SampleInterval 5 -MaxSamples 12 | Export-Counter -Path C:\\PerfLogs\\CPU_Performance_Log.blg}\n\n$smtpServer = 'mail.contoso.com'\n$from = 'admin@contoso.com'\n$to = 'management@contoso.com'\n$subject = 'CPU Performance Issue on VM cpu01'\n$body = 'Attached are the performance logs for analysis'\nSend-MailMessage -SmtpServer $smtpServer -From $from -To $to -Subject $subject -Body $body -Attachments 'C:\\PerfLogs\\CPU_Performance_Log.blg'",
+        "lint_passed": true
+    },
+    "email_draft": "Subject: Investigation into High CPU Utilization on Windows Server 2019 VM cpu01\n\nDear Management,\n\nI hope this message finds you well. I have been investigating the high CPU utilization issue on the Windows Server 2019 VM cpu01. After thorough analysis, it appears that the root cause of the CPU spikes exceeding 95% is due to a combination of processes and services consuming resources abnormally.\n\nTo further diagnose and monitor the performance of the server, I have developed a PowerShell script that collects perfmon logs. This script will help us gain insights into the specific processes and system components responsible for the high CPU utilization.\n\nI will continue to analyze the collected data and aim to provide a comprehensive report with actionable recommendations to optimize the server's performance and stability. Please feel free to reach out if you have any questions or require additional information.\n\nThank you for your attention to this matter.\n\nBest regards,\n[Your Name]\nTechnical Team",
+    "duration_seconds": 8.192784547805786,
+    "errors": null,
+    "commands": [
+        "$smtpServer = 'mail.contoso.com'",
+        "$from = 'admin@contoso.com'",
+        "$to = 'management@contoso.com'",
+        "$subject = 'CPU Performance Issue on VM cpu01'",
+        "$body = 'Attached are the performance logs for analysis'"
+    ]
+}
+```
+
+## Approval Flow (Example B)
+
+### Request
+```bash
+curl -X POST "http://localhost:8000/api/v1/execute" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "request": "Create Azure CLI commands to lock RDP (3389) on my three production VMs to 10.0.0.0/24 and pause for approval before outputting the commands.",
+           "require_approval": true
+         }'
+```
+
+### Initial Response
+```json
+{
+    "task_id": "a2e1d301-c7f5-4cec-b7b6-28f9234e9a15",
+    "status": "waiting_approval",
+    "plan": {
+        "steps": [
+            "Execute diagnostic",
+            "Execute automation",
+            "Execute writer"
+        ],
+        "summary": "Will execute 3 agents for critical task"
+    }
+}
+```
+
+### Approval Request
+```bash
+curl -X POST "http://localhost:8000/api/v1/plans/a2e1d301-c7f5-4cec-b7b6-28f9234e9a15/approve"
+```
+
+### Final Response
+```json
+{
+    "task_id": "a2e1d301-c7f5-4cec-b7b6-28f9234e9a15",
+    "status": "completed",
+    "plan": null,
+    "diagnosis": {
+        "root_cause": "Misconfiguration of Azure CLI commands for locking RDP (3389) on production VMs",
+        "evidence": [
+            "Locking RDP (3389) to a specific IP range (10.0.0.0/24)",
+            "Pausing for approval before executing commands"
+        ],
+        "solutions": [
+            "@{title=Double-check Azure CLI commands for locking RDP and approval process; confidence=High}"
+        ]
+    },
+    "script": {
+        "language": "powershell",
+        "code": "az vm open-port --resource-group MyResourceGroup --name MyVM1 --port 3389 --priority 1001 --action Deny\naz vm open-port --resource-group MyResourceGroup --name MyVM2 --port 3389 --priority 1001 --action Deny\naz vm open-port --resource-group MyResourceGroup --name MyVM3 --port 3389 --priority 1001 --action Deny",
+        "lint_passed": true
+    },
+    "email_draft": "Subject: Request for Azure CLI Commands to Lock RDP on Production VMs\n\nDear Azure Team,\n\nI hope this email finds you well. I am reaching out to request assistance with creating Azure CLI commands to lock RDP (3389) on my three production VMs to the IP range 10.0.0.0/24. Before executing the commands, I kindly ask for a pause for approval.\n\nThank you for your prompt attention to this matter. Please let me know if you require any further details.\n\nBest regards,\n[Your Name]",
+    "duration_seconds": 16.78329110145569,
+    "errors": null,
+    "commands": [
+        "az vm open-port --resource-group MyResourceGroup --name MyVM1 --port 3389 --priority 1001 --action Deny",
+        "az vm open-port --resource-group MyResourceGroup --name MyVM2 --port 3389 --priority 1001 --action Deny",
+        "az vm open-port --resource-group MyResourceGroup --name MyVM3 --port 3389 --priority 1001 --action Deny"
+    ]
+}
+```
+
+## Task Status Check
+```bash
+curl -X GET "http://localhost:8000/api/v1/tasks/{task_id}"
+```
+
+## Notes
+- Replace `{task_id}` with the actual task ID from the response
+- The API returns JSON responses with proper HTTP status codes
+- For approval flows, the task ID is also used as the plan ID
+- All timestamps are in UTC
+- Duration is measured in seconds 
